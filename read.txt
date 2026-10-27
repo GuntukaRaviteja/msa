@@ -1,0 +1,380 @@
+Compiler Design Lab — Execution Guide
+
+18 programs: filenames, compile commands, sample inputs, and expected outputs for Ubuntu
+
+1. Install tools (one time)
+
+sudo apt update
+sudo apt install gcc flex bison -y
+
+Create/open your lab folder:
+mkdir -p ~/compiler_lab
+cd ~/compiler_lab
+
+2. General compilation commands
+
+These commands are valid for Ubuntu/Linux. On macOS with Homebrew Flex, the linker usually cannot find libfl unless you add the Flex library path.
+
+Linux/Ubuntu:
+C:                 gcc file.c -o program && ./program
+Lex:               flex file.l && gcc lex.yy.c -o program -lfl && ./program
+YACC:              bison -dy file.y && gcc y.tab.c -o program -lfl && ./program
+Lex + YACC:        bison -dy calc.y && flex calc.l && gcc y.tab.c lex.yy.c -o calc -lfl && ./calc
+
+macOS (Homebrew Flex):
+Lex:               flex file.l && gcc lex.yy.c -o program -L/opt/homebrew/opt/flex/lib -lfl && ./program
+YACC:              bison -dy file.y && gcc y.tab.c -o program -L/opt/homebrew/opt/flex/lib -lfl && ./program
+Lex + YACC:        bison -dy calc.y && flex calc.l && gcc y.tab.c lex.yy.c -o calc -L/opt/homebrew/opt/flex/lib -lfl && ./calc
+
+If your Mac uses Intel Homebrew instead of Apple Silicon, use /usr/local/opt/flex/lib instead of /opt/homebrew/opt/flex/lib.
+
+For interactive Lex programs that keep reading from the keyboard, press Ctrl+D at the start of a new line to send EOF. Programs that request one line may finish when you press Enter.
+
+1. Symbol table
+
+Filename: symbol.c
+
+Commands:
+gcc symbol.c -o symbol
+./symbol
+
+Example input:
+3
+ a int
+ b float
+ sum int
+
+Expected output:
+Symbol Table
+Name    Type
+a       int
+b       float
+sum     int
+
+Notes: C program stores and displays names and types.
+
+2. Lexical analyzer
+
+Filename: lexer.l
+
+Commands:
+flex lexer.l
+gcc lex.yy.c -o lexer -lfl
+./lexer
+
+Example input:
+int total = 25;
+
+Expected output:
+Identifier: int
+Identifier: total
+Operator: =
+Constant: 25
+Special character: ;
+
+Notes: Press Ctrl+D after input. Recognizes identifiers, integers, operators, // comments and other characters.
+
+3. Valid variable using YACC
+
+Filename: variable.y
+
+Commands:
+bison -dy variable.y
+gcc y.tab.c -o variable -lfl
+./variable
+
+Example input:
+abc123
+
+Expected output:
+Valid Variable
+
+Notes: Enter one variable and press Enter. Starts with a letter, followed by letters/digits.
+
+4. Calculator using Lex + YACC
+
+Filename: calc.l and calc.y
+
+Commands:
+bison -dy calc.y
+flex calc.l
+gcc y.tab.c lex.yy.c -o calc -lfl
+./calc
+
+Example input:
+10+5*2
+
+Expected output:
+Result = 20
+
+Notes: Supports integer +, -, *, /, unary minus and parentheses. Press Enter after the expression.
+
+5. Stack storage allocation
+
+Filename: stack.c
+
+Commands:
+gcc stack.c -o stack
+./stack
+
+Example input:
+(No input; built-in example)
+
+Expected output:
+Allocated: 10
+Allocated: 20
+Allocated: 30
+Deallocated: 30
+Deallocated: 20
+
+Notes: Demonstrates stack LIFO push/pop.
+
+6. Recursive descent expression parser
+
+Filename: rd_expr.c
+
+Commands:
+gcc rd_expr.c -o rd_expr
+./rd_expr
+
+Example input:
+a+b*c
+
+Expected output:
+Valid Expression
+
+Notes: Accepts single-letter identifiers, +, *, and parentheses. Grammar is transformed to remove left recursion.
+
+7. Recursive descent list parser
+
+Filename: rd_list.c
+
+Commands:
+gcc rd_list.c -o rd_list
+./rd_list
+
+Example input:
+a,b,c
+
+Expected output:
+Valid List
+
+Notes: Accepts comma-separated alphabetic identifiers.
+
+8. FIRST sets for given grammar
+
+Filename: first.c
+
+Commands:
+gcc first.c -o first
+./first
+
+Example input:
+(No input)
+
+Expected output:
+FIRST(E) = { (, id }
+FIRST(T) = { (, id }
+FIRST(F) = { (, id }
+
+Notes: This short version prints the correct FIRST sets for the specified grammar; it is not a general FIRST-set algorithm.
+
+9. YACC expression parser
+
+Filename: parser.y
+
+Commands:
+bison -dy parser.y
+gcc y.tab.c -o parser -lfl
+./parser
+
+Example input:
+a+b
+
+Expected output:
+Valid Expression
+
+Notes: Example grammar accepts identifiers, + and parentheses. YACC/Bison is a bottom-up parser generator, not top-down.
+
+10. Algebraic expression evaluation (YACC)
+
+Filename: eval.y
+
+Commands:
+bison -dy eval.y
+gcc y.tab.c -o eval -lfl
+./eval
+
+Example input:
+8+2*3
+
+Expected output:
+Result = 14
+
+Notes: YACC file contains a simple lexer and evaluates integer expressions.
+
+11. Reserved-word recognition
+
+Filename: reserved.l
+
+Commands:
+flex reserved.l
+gcc lex.yy.c -o reserved -lfl
+./reserved
+
+Example input:
+int main return value
+
+Expected output:
+Keyword: int
+Identifier: main
+Keyword: return
+Identifier: value
+
+Notes: Recognizes a small list of C keywords. Press Ctrl+D to finish.
+
+12. Vowels and consonants
+
+Filename: vowel.l
+
+Commands:
+flex vowel.l
+gcc lex.yy.c -o vowel -lfl
+./vowel
+
+Example input:
+apple
+
+Expected output:
+a is a vowel
+p is a consonant
+p is a consonant
+l is a consonant
+e is a vowel
+
+Notes: Press Ctrl+D to finish.
+
+13. Noun and verb recognition
+
+Filename: nounverb.l
+
+Commands:
+flex nounverb.l
+gcc lex.yy.c -o nounverb -lfl
+./nounverb
+
+Example input:
+boy eat book
+
+Expected output:
+boy is a noun
+eat is a verb
+book is a noun
+
+Notes: Uses a small predefined vocabulary; unknown words are reported as unknown. Press Ctrl+D to finish.
+
+14. Three-address code
+
+Filename: tac.c
+
+Commands:
+gcc tac.c -o tac
+./tac
+
+Example input:
+(No input; built-in expression a+b*c)
+
+Expected output:
+t1 = b * c
+t2 = a + t1
+
+Notes: Fixed demonstration of three-address code output.
+
+15. Count vowels/consonants in a file
+
+Filename: countvc.l
+
+Commands:
+printf 'Hello World\n' > input.txt
+flex countvc.l
+gcc lex.yy.c -o countvc -lfl
+./countvc input.txt
+
+Example input:
+File input.txt contains: Hello World
+
+Expected output:
+Vowels: 3
+Consonants: 7
+
+Notes: Filename is passed as an argument. Counts alphabetic vowels and consonants only.
+
+16. Find uppercase letters in a file
+
+Filename: uppercase.l
+
+Commands:
+printf 'Hello WORLD\n' > input.txt
+flex uppercase.l
+gcc lex.yy.c -o uppercase -lfl
+./uppercase input.txt
+
+Example input:
+File input.txt contains: Hello WORLD
+
+Expected output:
+Uppercase letters: H W O R L D
+
+Notes: Filename is passed as an argument.
+
+17. Count words, special characters, lines
+
+Filename: count.l
+
+Commands:
+printf 'Hello World!\nWelcome to C.\n' > input.txt
+flex count.l
+gcc lex.yy.c -o count -lfl
+./count input.txt
+
+Example input:
+File contains two lines: Hello World! / Welcome to C.
+
+Expected output:
+Words: 5
+Special characters: 2
+Lines: 3
+
+Notes: This simple version counts words as alphanumeric/underscore sequences. It reports newline count + 1, so trailing-newline handling is approximate.
+
+18. Recognize arithmetic operations
+
+Filename: arithmetic.l
+
+Commands:
+flex arithmetic.l
+gcc lex.yy.c -o arithmetic -lfl
+./arithmetic
+
+Example input:
+10 + 5 * 2
+
+Expected output:
+Number: 10
+Arithmetic operator: +
+Number: 5
+Arithmetic operator: *
+Number: 2
+
+Notes: Recognizes tokens; it does not calculate the result. Press Ctrl+D to finish.
+
+Common troubleshooting
+
+• If flex says it cannot open a file, run ls and check the filename and current folder.
+• If gcc says lex.yy.c is missing, run flex yourfile.l first.
+• If gcc says ld: library 'fl' not found, you are on macOS and need the Homebrew Flex path:
+  - Apple Silicon: -L/opt/homebrew/opt/flex/lib -lfl
+  - Intel Mac: -L/usr/local/opt/flex/lib -lfl
+• For Lex + YACC, run bison -dy calc.y before flex calc.l because calc.l includes y.tab.h.
+• If the terminal appears to wait for more input, press Ctrl+D at the start of a new line for keyboard-driven Lex programs.
+• Save edited files before compiling again.
